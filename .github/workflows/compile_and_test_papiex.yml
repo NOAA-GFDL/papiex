@@ -14,8 +14,8 @@ jobs:
 
     strategy:
       matrix:
-        papi_config: ['y', 'n']
-
+        config_papiex_papi: ['y', 'n']
+        config_papiex_debug: ['y', 'n']
     #service:
     #  - postgres:latest
 
@@ -33,7 +33,7 @@ jobs:
       - name: compile papiex
         run: |
           mkdir /build
-          make OS_TARGET=rocky-8 CONFIG_PAPIEX_PAPI=${{ matrix.papi_config }} distclean install dist dist-test
+          make OS_TARGET=rocky-8 CONFIG_PAPIEX_DEBUG==${{ matrix.config_papiex_debug }} CONFIG_PAPIEX_PAPI=${{ matrix.config_papiex_papi }} distclean install dist dist-test
 
       - name: setup test env after compiling with more yum etc
         run: |
@@ -84,7 +84,7 @@ jobs:
       - name: make check papiex (redundant with below?)
         run: |
           echo 2 > /proc/sys/kernel/perf_event_paranoid
-          make OS_TARGET=rocky-8 CONFIG_PAPIEX_PAPI=${{ matrix.papi_config }} check
+          make OS_TARGET=rocky-8 CONFIG_PAPIEX_DEBUG==${{ matrix.config_papiex_debug }} CONFIG_PAPIEX_PAPI=${{ matrix.config_papiex_papi }} check
 
       - name: run init.sh and call tests
         run: |
