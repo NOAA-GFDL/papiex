@@ -98,6 +98,7 @@ declare -a shells=(
     "csh -f evilcsh.csh"
     "tclsh toughone.tcl"
     "tclsh toughtwo.tcl"
+    "tclsh toughthree.tcl"
     "bash toughthree.sh"
     "git clone https://github.com/NOAA-GFDL/mkmf.git"
     "rm -rf mkmf"
