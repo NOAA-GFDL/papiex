@@ -1,11 +1,11 @@
-OS_TARGET?=centos-7
+OS_TARGET?=rocky-8
 # Please sync with papiex/Makefile
 VERSION=2.3.15
 # Please sync with papiex/Makefile
 RELEASE=papiex-epmt-$(VERSION)-$(OS_TARGET).tgz
 #
 CONFIG_PAPIEX_DEBUG?=y
-CONFIG_PAPIEX_PAPI?=n
+CONFIG_PAPIEX_PAPI?=y
 #
 SHELL = /bin/bash
 CC := gcc
