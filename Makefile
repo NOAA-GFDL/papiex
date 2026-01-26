@@ -1,41 +1,41 @@
+# Please sync these three with papiex/Makefile
 OS_TARGET?=rocky-8
-# Please sync with papiex/Makefile
 VERSION=2.3.15
-# Please sync with papiex/Makefile
 RELEASE=papiex-epmt-$(VERSION)-$(OS_TARGET).tgz
-#
+
 CONFIG_PAPIEX_DEBUG?=y
 CONFIG_PAPIEX_PAPI?=y
-#
+
 SHELL = /bin/bash
 CC := gcc
 OCC := $(CC)
+
 DOCKER_RUN:=docker run
 DOCKER_BUILD:=docker build -f
 DOCKER_RUN_OPTS:=--rm -it
-#
+
 ## if on m-chip mac... use this - Ian
 #DOCKER_RUN:=docker run 
 #DOCKER_BUILD:=docker build --platform linux/x86_64 -f
 #DOCKER_RUN_OPTS:=--rm -it --platform linux/x86_64
-#
+
 PREFIX := $(shell pwd)/papiex-epmt-install
 LIBMONITOR := $(DESTDIR)$(PREFIX)/lib/libmonitor.so
 LIBPFM := $(DESTDIR)$(PREFIX)/lib/libpfm.so
 LIBPAPI := $(DESTDIR)$(PREFIX)/lib/libpapi.so
 LIBPAPIEX := $(DESTDIR)$(PREFIX)/lib/libpapiex.so
 DEPS = $(LIBMONITOR) $(LIBPFM) $(LIBPAPI) $(LIBPAPIEX)
-#
+
 ifneq (,$(findstring y,$(CONFIG_PAPIEX_PAPI)))
 PAPI_PREFIX := $(PREFIX)
 PAPI_INC_PATH ?= $(PAPI_PREFIX)/include
 PAPI_LIB_PATH ?= $(PAPI_PREFIX)/lib
 endif
-#
+
 MONITOR_PREFIX := $(PREFIX)
 MONITOR_INC_PATH ?= $(MONITOR_PREFIX)/include
 MONITOR_LIB_PATH ?= $(MONITOR_PREFIX)/lib
-#
+
 ifneq (,$(findstring y,$(CONFIG_PAPIEX_PAPI)))
 ifneq (,$(findstring y,$(CONFIG_PAPIEX_DEBUG)))
 PAPI_CONFIGURE_ARGS = --with-static-user-events --with-static-papi-events --enable-perfevent_rdpmc=no --disable-perf_event_uncore --prefix=$(PAPI_PREFIX) --with-pfm-root=$(shell pwd)/libpfm --with-debug=yes
@@ -124,10 +124,6 @@ endif
 	-cd papiex; $(MAKE) distclean
 	rm -rf papiex-epmt-install test-$(RELEASE) $(RELEASE)
 
-
-
-
-
 #
 # Docker targets
 #
@@ -155,6 +151,3 @@ docker-clean:
 
 docker-distclean:
 	$(DOCKER_RUN) $(DOCKER_RUN_OPTS) -v `pwd`:/build -w /build $(OS_TARGET)-papiex-build $(DOCKER_MAKE) distclean 
-
-
-
