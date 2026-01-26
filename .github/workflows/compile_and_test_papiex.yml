@@ -3,15 +3,14 @@ name: compile_and_test_papiex
 on:
   push
 
-# cancel running jobs if theres a newer push
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build-linux:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        config_papiex_papi: ['y', 'n']
+        config_papiex_debug: ['y', 'n']
     #service:
     #  - postgres:latest
 
@@ -29,7 +28,7 @@ jobs:
       - name: compile papiex
         run: |
           mkdir /build
-          make OS_TARGET=rocky-8 distclean install dist dist-test
+          make OS_TARGET=rocky-8 CONFIG_PAPIEX_DEBUG==${{ matrix.config_papiex_debug }} CONFIG_PAPIEX_PAPI=${{ matrix.config_papiex_papi }} distclean install dist dist-test
 
       - name: setup test env after compiling with more yum etc
         run: |
@@ -80,7 +79,7 @@ jobs:
       - name: make check papiex (redundant with below?)
         run: |
           echo 2 > /proc/sys/kernel/perf_event_paranoid
-          make OS_TARGET=rocky-8 check
+          make OS_TARGET=rocky-8 CONFIG_PAPIEX_DEBUG==${{ matrix.config_papiex_debug }} CONFIG_PAPIEX_PAPI=${{ matrix.config_papiex_papi }} check
 
       - name: run init.sh and call tests
         run: |
