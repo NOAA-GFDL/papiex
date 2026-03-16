@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
 
-# cancel running jobs if theres a newer push
+# cancel running jobs if there's a newer push
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -12,6 +12,8 @@ concurrency:
 jobs:
   conda-build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     defaults:
       run:
