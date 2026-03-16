@@ -1217,7 +1217,8 @@ _linux_update_shlib_info( papi_mdi_t *mdi )
 					t_index++;
 					tmp[t_index - 1].text_start = ( caddr_t ) begin;
 					tmp[t_index - 1].text_end = ( caddr_t ) ( begin + size );
-					strncpy( tmp[t_index - 1].name, mapname, PAPI_MAX_STR_LEN );
+					strncpy( tmp[t_index - 1].name, mapname, PAPI_MAX_STR_LEN - 1 );
+				tmp[t_index - 1].name[PAPI_MAX_STR_LEN - 1] = '\0';
 				}
 			} else if ( ( perm[0] == 'r' ) && ( perm[1] == 'w' ) &&
 						( inode != 0 ) ) {

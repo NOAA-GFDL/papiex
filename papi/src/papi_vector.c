@@ -105,6 +105,8 @@ long long vec_virt_nsec_dummy(void)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 int
 _papi_hwi_innoculate_vector( papi_vector_t * v )
 {
@@ -194,6 +196,7 @@ _papi_hwi_innoculate_vector( papi_vector_t * v )
 		v->user = ( int ( * )( int, void *, void * ) ) vec_int_dummy;
 	return PAPI_OK;
 }
+#pragma GCC diagnostic pop
 
 
 int

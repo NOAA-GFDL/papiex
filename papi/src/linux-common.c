@@ -197,7 +197,8 @@ decode_cpuinfo_x86( FILE *f, PAPI_hw_info_t *hwinfo )
 	s = search_cpu_info( f, "model name");
 	strSize = sizeof(hwinfo->model_string);
 	if ( s ) {
-		strncpy( hwinfo->model_string, s, strSize);
+		strncpy( hwinfo->model_string, s, strSize - 1);
+		hwinfo->model_string[strSize - 1] = '\0';
 	}
 
 	/* Family */
@@ -239,7 +240,8 @@ decode_cpuinfo_power(FILE *f, PAPI_hw_info_t *hwinfo )
 	s = search_cpu_info( f, "model");
 	strSize = sizeof(hwinfo->model_string);
 	if ( s ) {
-		strncpy( hwinfo->model_string, s, strSize);
+		strncpy( hwinfo->model_string, s, strSize - 1);
+		hwinfo->model_string[strSize - 1] = '\0';
 	}
 
 	return PAPI_OK;
@@ -268,7 +270,8 @@ decode_cpuinfo_arm(FILE *f, PAPI_hw_info_t *hwinfo )
 	s = search_cpu_info( f, "model name");
 	strSize = sizeof(hwinfo->model_string);
 	if ( s ) {
-		strncpy( hwinfo->model_string, s, strSize );
+		strncpy( hwinfo->model_string, s, strSize - 1 );
+		hwinfo->model_string[strSize - 1] = '\0';
 	}
 
 	/* Architecture (ARMv6, ARMv7, ARMv8, etc.) */
