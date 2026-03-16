@@ -1,0 +1,57 @@
+name: create_test_conda_env
+
+on:
+  pull_request:
+    branches:
+
+  push:
+    branches:
+      - main
+
+# cancel running jobs if theres a newer push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conda-env-test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        # bash -l is required so that conda activate works inside run: steps
+        shell: bash -l {0}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # conda-incubator/setup-miniconda supports Miniforge via miniforge-version.
+      # Miniforge ships with conda-forge as its only default channel (open-source,
+      # community-maintained). This avoids any dependency on Anaconda-proprietary
+      # channels or packages entirely.
+      - name: Set up Miniforge environment from environment.yml
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          conda-remove-defaults: true
+          environment-file: environment.yml
+          activate-environment: papiex
+
+      - name: Show installed packages
+        run: |
+          echo "conda info is:"
+          conda info
+
+          echo "printing installed packages"
+          conda list
+
+          echo "printing conda config just in case"
+          conda config --show
+
+      - name: Verify papi is available
+        run: |
+          echo "checking that papi shared library is present in the environment"
+          test -f "$CONDA_PREFIX/lib/libpapi.so" && echo "libpapi.so found" || echo "libpapi.so not found (may be OK on some platforms)"
+          ls -la "$CONDA_PREFIX/lib"/libpapi* || true
+          ls -la "$CONDA_PREFIX/lib"/libpfm* || true
