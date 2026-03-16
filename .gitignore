@@ -59,4 +59,9 @@ papiex/x86_64-Linux/
 papi/src/Makefile
 papi/src/config.h
 papi/src/libpapi.so*
+papi/src/genpapifdef
+papi/src/papi.pc
+papi/src/papi_fwrappers_.c
+papi/src/papi_fwrappers__.c
+papi/src/upper_PAPI_FWRAPPERS.c
 papi/src/utils/
