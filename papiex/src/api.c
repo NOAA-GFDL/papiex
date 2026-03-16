@@ -92,6 +92,12 @@ void papiex_stop(int point)
   LIBPAPIEX_DEBUG("STOP POINT %d USED %d DEPTH %d",point,(int)thr_data->data[point].used,thr_data->data[point].depth);
 }
 
+/* When PAPIEX_MAX_CALIPERS is 1, the compiler correctly notes that data[point]
+   with point > 0 exceeds the array bounds. However, the runtime bounds check
+   above ensures this code is unreachable in that configuration. Suppress the
+   false-positive warning. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 void papiex_accum(int point)
 {
   /* Accum can't be called on point 0 */
@@ -134,6 +140,7 @@ void papiex_accum(int point)
 #endif
   thr_data->data[point].used++;
 }
+#pragma GCC diagnostic pop
 
 void papiex_start__(int *point, char *label)
 {

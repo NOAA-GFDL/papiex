@@ -143,7 +143,11 @@ static int create_process_file(char *prefix, char *fn, int *gen)
     return -1;
   
   while (1) {
-    snprintf(rfn,PATH_MAX,"%s%s-%s-%d-%d.csv",prefix,process_hostname,"papiex",getpid(),instance);
+    int rv = snprintf(rfn,PATH_MAX,"%s%s-%s-%d-%d.csv",prefix,process_hostname,"papiex",getpid(),instance);
+    if (rv >= PATH_MAX) {
+      LIBPAPIEX_ERROR("filename too long (%d >= %d)",rv,PATH_MAX);
+      return -1;
+    }
     LIBPAPIEX_DEBUG("trying to open file %s",rfn);
     fd = open(rfn, O_WRONLY|O_CREAT|O_EXCL, 0644);
     if (fd >= 0)
@@ -274,10 +278,10 @@ int write_header(char *fn, int fd, char **enames, int ecnt, papiex_plugin_data_t
   // Plugins
   for (e=0;e<num_plugins;e++) {
     papiex_plugin_data_t *t = p + e;
-    if ((t == NULL) || (t->fields == NULL) || (strlen(t->fields) == 0)) {
-      LIBPAPIEX_ERROR("write_header(%s,%d,%p,%d,%p,%d): plugin %d, pointer %p, field pointer %p, len field %d",
+    if ((t == NULL) || (strlen(t->fields) == 0)) {
+      LIBPAPIEX_ERROR("write_header(%s,%d,%p,%d,%p,%d): plugin %d, pointer %p, len field %d",
 		      fn,fd,enames,ecnt,p,num_plugins,
-		      e,t,t->fields,(int)strlen(t->fields));
+		      e,t,(t ? (int)strlen(t->fields) : 0));
       return -1;
     }
     LIBPAPIEX_DEBUG("Adding %s to header line",t->fields);
@@ -316,10 +320,10 @@ int write_header_csv_v2(char *fn, int fd, char **enames, int ecnt, papiex_plugin
   // Plugins
   for (e=0;e<num_plugins;e++) {
     papiex_plugin_data_t *t = p + e;
-    if ((t == NULL) || (t->fields == NULL) || (strlen(t->fields) == 0)) {
-      LIBPAPIEX_ERROR("write_header_csv_v2(%s,%d,%p,%d,%p,%d): plugin %d, pointer %p, field pointer %p, len field %d",
+    if ((t == NULL) || (strlen(t->fields) == 0)) {
+      LIBPAPIEX_ERROR("write_header_csv_v2(%s,%d,%p,%d,%p,%d): plugin %d, pointer %p, len field %d",
 		      fn,fd,enames,ecnt,p,num_plugins,
-		      e,t,t->fields,(int)strlen(t->fields));
+		      e,t,(t ? (int)strlen(t->fields) : 0));
       return -1;
     }
     // no leading comma 

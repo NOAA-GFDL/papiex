@@ -37,3 +37,26 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Build artifacts #
+####################
+monitor/Makefile
+monitor/config.h
+monitor/config.status
+monitor/libtool
+monitor/stamp-h1
+monitor/src/.deps/
+monitor/src/.libs/
+monitor/src/Makefile
+monitor/src/*.la
+monitor/src/*.lo
+monitor/src/monitor-link
+monitor/src/monitor-run
+libpfm/examples/check_events
+libpfm/examples/showevtinfo
+papiex-epmt-install/
+papiex/x86_64-Linux/
+papi/src/Makefile
+papi/src/config.h
+papi/src/libpapi.so*
+papi/src/utils/
