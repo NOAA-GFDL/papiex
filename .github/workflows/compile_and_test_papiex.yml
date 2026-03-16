@@ -78,9 +78,9 @@ jobs:
           echo -e "#!/bin/bash\nmount -o remount rw /proc\nsysctl -w kernel.perf_event_paranoid=0\n/usr/sbin/sshd 2>/dev/null || true\n\$*" > /tmp/init.sh && chmod 755 /tmp/init.sh
           cat /tmp/init.sh
           /usr/sbin/sshd
-          # Verify sshd is listening and SSH authentication works
-          ss -tlnp | grep :22
-          ssh -o PreferredAuthentications=publickey -vvv localhost /bin/true 2>&1 | tail -20
+          # Verify SSH authentication works end-to-end
+          ssh -v -o PreferredAuthentications=publickey localhost /bin/true
+          echo "SSH publickey auth to localhost: OK"
 
       - name: make check papiex
         run: |
