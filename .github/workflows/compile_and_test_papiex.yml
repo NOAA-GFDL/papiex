@@ -74,8 +74,10 @@ jobs:
 
       - name: create init.sh and start sshd
         run: |
+          # Remove nologin files that block SSH login via pam_nologin in containers
+          rm -f /var/run/nologin /run/nologin /etc/nologin
           # Setup the environment, daemons and run the test script
-          echo -e "#!/bin/bash\nmount -o remount rw /proc\nsysctl -w kernel.perf_event_paranoid=0\n/usr/sbin/sshd 2>/dev/null || true\n\$*" > /tmp/init.sh && chmod 755 /tmp/init.sh
+          echo -e "#!/bin/bash\nrm -f /var/run/nologin /run/nologin /etc/nologin\nmount -o remount rw /proc\nsysctl -w kernel.perf_event_paranoid=0\n/usr/sbin/sshd 2>/dev/null || true\n\$*" > /tmp/init.sh && chmod 755 /tmp/init.sh
           cat /tmp/init.sh
           /usr/sbin/sshd
           # Verify SSH authentication works end-to-end
