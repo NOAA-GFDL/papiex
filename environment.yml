@@ -1,0 +1,43 @@
+# Conda development environment for papiex
+#
+# Prerequisites:
+#   module load conda           # (if needed on your system)
+#
+# Create the environment:
+#   conda env create -f environment.yml
+#
+# Activate:
+#   conda activate papiex
+#
+# Build (after activating):
+#   make PREFIX=$CONDA_PREFIX CONFIG_PAPIEX_PAPI=y install
+#
+# Verify:
+#   make PREFIX=$CONDA_PREFIX CONFIG_PAPIEX_PAPI=y check
+
+name: papiex
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # --- build toolchain ---------------------------------------------------
+  - gcc_linux-64
+  - make
+  - findutils
+  - file
+
+  # --- runtime dependencies ----------------------------------------------
+  # papi (from conda-forge) replaces the vendored papi/ and libpfm/ dirs.
+  # The conda-forge papi package already bundles libpfm4.
+  - conda-forge::papi
+
+  # NOTE: libmonitor is NOT yet available on conda-forge and is still built
+  # from the vendored monitor/ directory.  Once a conda-forge package
+  # exists, add it here and remove the vendored build step.
+
+  # --- optional: test / integration with epmt ----------------------------
+  # Python 3.9-3.11 kept for backward compatibility with NOAA-GFDL/epmt
+  # Uncomment if you need Python in the same environment.
+  # - python>=3.9,<3.12

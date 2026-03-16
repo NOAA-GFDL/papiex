@@ -1,0 +1,66 @@
+# Conda build recipe for papiex
+#
+# Build locally with:
+#   conda build .
+#
+# Or with a specific version tag:
+#   GIT_DESCRIBE_TAG=2.3.15 conda build .
+#
+# NOTE: This recipe is modeled after the conda packaging approaches used
+#       by NOAA-GFDL/fre-cli and NOAA-GFDL/epmt.
+#
+# Dependency strategy:
+#   - papi:       provided by conda-forge (replaces vendored papi/ and libpfm/)
+#   - libpfm4:    bundled with the conda-forge papi package
+#   - libmonitor: NOT yet on conda-forge; built from the vendored monitor/ source
+
+package:
+  name: papiex
+  version: '{{ environ.get("GIT_DESCRIBE_TAG", "2.3.15") }}'
+
+source:
+  path: .
+
+build:
+  number: 0
+  skip: true  # [not linux]
+  script:
+    # ---- build libmonitor from vendored source (not yet on conda-forge) ----
+    - cd monitor && ./configure --prefix=$PREFIX --disable-link-static && make install
+    # ---- build papiex against conda-forge papi + vendored libmonitor -------
+    - cd papiex && make CC=$CC OCC=$CC CONFIG_PAPIEX_PAPI=y CONFIG_PAPIEX_DEBUG=n MONITOR_INC_PATH=$PREFIX/include MONITOR_LIB_PATH=$PREFIX/lib PAPI_INC_PATH=$PREFIX/include PAPI_LIB_PATH=$PREFIX/lib PREFIX=$PREFIX install
+
+channels:
+  - conda-forge
+  - defaults
+
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - make
+  host:
+    # papi from conda-forge provides both libpapi and libpfm4
+    - conda-forge::papi
+  run:
+    - conda-forge::papi
+    # NOTE: libmonitor is vendored and installed into $PREFIX at build time.
+    # Once a conda-forge libmonitor package is available, add it here and
+    # remove the vendored build step in the build script above.
+
+test:
+  commands:
+    # Verify the shared library was installed
+    - test -f $PREFIX/lib/libpapiex.so
+    - test -f $PREFIX/lib/libmonitor.so
+
+about:
+  home: https://github.com/NOAA-GFDL/papiex
+  license: LGPL-2.1-only
+  license_file: LICENSE
+  summary: Performance monitoring library using PAPI and libmonitor (LD_PRELOAD)
+  description: |
+    papiex is a lightweight performance monitoring tool that uses LD_PRELOAD
+    to transparently collect hardware and software performance counter data
+    for any application.  It relies on PAPI for hardware counter access and
+    libmonitor for process/thread lifecycle callbacks.
+  dev_url: https://github.com/NOAA-GFDL/papiex
