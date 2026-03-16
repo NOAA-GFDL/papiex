@@ -38,6 +38,6 @@ dependencies:
   # exists, add it here and remove the vendored build step.
 
   # --- optional: test / integration with epmt ----------------------------
-  # Python 3.9-3.11 kept for backward compatibility with NOAA-GFDL/epmt
-  # Uncomment if you need Python in the same environment.
+  # Python 3.9, 3.10, and 3.11 are kept for backward compatibility with
+  # NOAA-GFDL/epmt.  Uncomment if you need Python in the same environment.
   # - python>=3.9,<3.12
