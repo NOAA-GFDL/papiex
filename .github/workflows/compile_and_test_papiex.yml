@@ -48,6 +48,17 @@ jobs:
           ssh-keygen -t rsa -f ~/.ssh/id_rsa -q -N ""
           cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
           chmod 600 ~/.ssh/authorized_keys
+          # GitHub Actions overrides HOME (e.g. /github/home), but sshd resolves
+          # the root user home from /etc/passwd (typically /root). Copy the SSH
+          # keys there so that sshd can authenticate root via publickey.
+          ROOTHOME=$(getent passwd root | cut -d: -f6)
+          if [ "$HOME" != "$ROOTHOME" ]; then
+            mkdir -p "${ROOTHOME}/.ssh"
+            cp ~/.ssh/id_rsa "${ROOTHOME}/.ssh/id_rsa"
+            cp ~/.ssh/authorized_keys "${ROOTHOME}/.ssh/authorized_keys"
+            chmod 700 "${ROOTHOME}/.ssh"
+            chmod 600 "${ROOTHOME}/.ssh/id_rsa" "${ROOTHOME}/.ssh/authorized_keys"
+          fi
 
       - name: configure csh user
         run: |
@@ -73,10 +84,13 @@ jobs:
         run: |
           # Setup the environment, daemons and run the test script
           touch /tmp/init.sh
-          echo -e "#!/bin/bash\nmount -o remount rw /proc\nsysctl -w kernel.perf_event_paranoid=0\n/usr/sbin/sshd\n\$*" > /tmp/init.sh && chmod 755 /tmp/init.sh
+          echo -e "#!/bin/bash\nmount -o remount rw /proc\nsysctl -w kernel.perf_event_paranoid=0\n/usr/sbin/sshd 2>/dev/null || true\n\$*" > /tmp/init.sh && chmod 755 /tmp/init.sh
           cat /tmp/init.sh
 
-      - name: make check papiex (redundant with below?)
+      - name: start sshd
+        run: /usr/sbin/sshd
+
+      - name: make check papiex
         run: |
           echo 2 > /proc/sys/kernel/perf_event_paranoid
           make OS_TARGET=rocky-8 CONFIG_PAPIEX_DEBUG==${{ matrix.config_papiex_debug }} CONFIG_PAPIEX_PAPI=${{ matrix.config_papiex_papi }} check
