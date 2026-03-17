@@ -39,10 +39,17 @@ requirements:
     # remove the vendored build step in the build script above.
 
 test:
+  source_files:
+    - papiex/src/tests/
+  requires:
+    - python
+    - perl
   commands:
-    # Verify the shared library was installed
+    # Verify the shared libraries were installed
     - test -f $PREFIX/lib/libpapiex.so
     - test -f $PREFIX/lib/libmonitor.so
+    # Run the papiex test suite (same tests that 'make check' runs)
+    - cd papiex/src/tests && PAPIEX_PREFIX=$PREFIX bash test.sh
 
 about:
   home: https://github.com/NOAA-GFDL/papiex

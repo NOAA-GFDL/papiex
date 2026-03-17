@@ -54,6 +54,12 @@ jobs:
         run: |
           conda install -y conda-forge::conda-build
 
+      - name: Enable perf_event for tests
+        run: |
+          # perf_event_paranoid=2 allows user-space perf counter collection,
+          # required for PAPI to function (matches compile_and_test_papiex.yml)
+          sudo sysctl -w kernel.perf_event_paranoid=2
+
       - name: Build papiex conda package
         run: |
           echo "conda building papiex package and outputting as a tarball"

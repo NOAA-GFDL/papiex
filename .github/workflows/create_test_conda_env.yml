@@ -57,3 +57,34 @@ jobs:
           test -f "$CONDA_PREFIX/lib/libpapi.so" && echo "libpapi.so found" || echo "libpapi.so not found (may be OK on some platforms)"
           ls -la "$CONDA_PREFIX/lib"/libpapi* || true
           ls -la "$CONDA_PREFIX/lib"/libpfm* || true
+
+      - name: Enable perf_event for tests
+        run: |
+          # perf_event_paranoid=2 allows user-space perf counter collection,
+          # required for PAPI to function (matches compile_and_test_papiex.yml)
+          sudo sysctl -w kernel.perf_event_paranoid=2
+
+      - name: Build papiex from source
+        run: |
+          # Build libmonitor from vendored source (not yet on conda-forge)
+          cd monitor
+          ./configure --prefix="$CONDA_PREFIX" --disable-link-static
+          make install
+          cd ..
+
+          # Build papiex against conda-provided papi + vendored libmonitor
+          cd papiex
+          make CC="${CC:-gcc}" OCC="${CC:-gcc}" \
+               CONFIG_PAPIEX_PAPI=y \
+               CONFIG_PAPIEX_DEBUG=n \
+               MONITOR_INC_PATH="$CONDA_PREFIX/include" \
+               MONITOR_LIB_PATH="$CONDA_PREFIX/lib" \
+               PAPI_INC_PATH="$CONDA_PREFIX/include" \
+               PAPI_LIB_PATH="$CONDA_PREFIX/lib" \
+               PREFIX="$CONDA_PREFIX" \
+               install
+
+      - name: Run papiex tests
+        run: |
+          cd papiex/src/tests
+          PAPIEX_PREFIX="$CONDA_PREFIX" bash test.sh
