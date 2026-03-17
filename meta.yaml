@@ -44,6 +44,7 @@ test:
   requires:
     - python
     - perl
+    - tcsh
   commands:
     # Verify the shared libraries were installed
     - test -f $PREFIX/lib/libpapiex.so

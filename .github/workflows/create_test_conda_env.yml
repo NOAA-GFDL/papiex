@@ -58,6 +58,12 @@ jobs:
           ls -la "$CONDA_PREFIX/lib"/libpapi* || true
           ls -la "$CONDA_PREFIX/lib"/libpfm* || true
 
+      - name: Install test dependencies
+        run: |
+          # tcsh provides both tcsh and csh, needed by the test suite
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq tcsh
+
       - name: Enable perf_event for tests
         run: |
           # perf_event_paranoid=2 allows user-space perf counter collection,
