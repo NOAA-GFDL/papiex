@@ -13,9 +13,9 @@ endif
 # If the API changed, bump this and reset all
 INTERFACE=2
 # If API has been added to but has backwards compat, bump this.
-AGE=4
+AGE=3
 # If anything changed at all bump this.
-REVISION=0
+REVISION=16
 VERSION=$(INTERFACE).$(AGE).$(REVISION)
 
 LIBNAME=papiex
