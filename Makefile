@@ -1,6 +1,6 @@
 # Please sync these three with papiex/Makefile
 OS_TARGET?=rocky-8
-VERSION=2.3.15
+VERSION=2.4.0
 RELEASE=papiex-epmt-$(VERSION)-$(OS_TARGET).tgz
 
 CONFIG_PAPIEX_DEBUG?=y
