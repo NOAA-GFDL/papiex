@@ -115,7 +115,8 @@ _papi_libpfm4_init(papi_vector_t *my_vector) {
 		}
 		else {
 			strncpy(my_vector->cmp_info.disabled_reason,
-				pfm_strerror(retval),PAPI_MAX_STR_LEN);
+				pfm_strerror(retval),PAPI_MAX_STR_LEN - 1);
+			my_vector->cmp_info.disabled_reason[PAPI_MAX_STR_LEN - 1] = '\0';
 			_papi_hwi_unlock( NAMELIB_LOCK );
 			return PAPI_ESBSTR;
 		}
