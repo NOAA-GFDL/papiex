@@ -36,25 +36,28 @@ jobs:
           yum install -y tcsh bind-utils openssh-clients openssh-server
           yum install -y tcl environment-modules git
 
-      - name: config test ssh host keys
+      - name: config test ssh keys
         run: |
-          mkdir /var/run/sshd
+          mkdir -p /var/run/sshd
           echo -e "ForwardX11 no\nStrictHostKeyChecking no\nPreferredAuthentications publickey" >> /etc/ssh/ssh_config
-          # Generate SSH host keys without a passphrase for testing purposes only.
-          # This is acceptable in this controlled test environment as the image is not used in production.
-          ls ~/.ssh && echo ".ssh dir exists!" || echo ".ssh dir does not exist!"
-          mkdir ~/.ssh && echo ".ssh dir created!" || echo ".ssh dir could not be created but its OK!"
-          ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ''
-          ssh-keygen -t rsa -f ~/.ssh/id_rsa -q -N ""
-          cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-          chmod 600 ~/.ssh/authorized_keys
+          # Generate all SSH host key types for testing purposes only.
+          # This is acceptable in this controlled test environment.
+          ssh-keygen -A
+          # GitHub Actions containers override HOME (e.g. /github/home) so
+          # use absolute paths to /root/.ssh which is where the OpenSSH
+          # client and server resolve root's home via /etc/passwd.
+          mkdir -p /root/.ssh
+          chmod 700 /root/.ssh
+          ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
+          cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+          chmod 600 /root/.ssh/authorized_keys
 
       - name: configure csh user
         run: |
           # Configure csh user allow root to log in to them
           useradd -m -s /bin/csh -pfoo cshuser
           mkdir ~cshuser/.ssh
-          cp ~/.ssh/authorized_keys ~cshuser/.ssh/authorized_keys
+          cp /root/.ssh/authorized_keys ~cshuser/.ssh/authorized_keys
           chmod 700 ~cshuser/.ssh/
           chmod 600 ~cshuser/.ssh/authorized_keys
           chown -R cshuser ~cshuser/.ssh
@@ -64,19 +67,24 @@ jobs:
           # Configure tcsh user
           useradd -m -s /usr/bin/tcsh -pfoo tcshuser
           mkdir ~tcshuser/.ssh
-          cp ~/.ssh/authorized_keys ~tcshuser/.ssh/authorized_keys
+          cp /root/.ssh/authorized_keys ~tcshuser/.ssh/authorized_keys
           chmod 700 ~tcshuser/.ssh/
           chmod 600 ~tcshuser/.ssh/authorized_keys
           chown -R tcshuser ~tcshuser/.ssh
 
-      - name: create init.sh and print to screen
+      - name: create init.sh and start sshd
         run: |
+          # Remove nologin files that block SSH login via pam_nologin in containers
+          rm -f /var/run/nologin /run/nologin /etc/nologin
           # Setup the environment, daemons and run the test script
-          touch /tmp/init.sh
-          echo -e "#!/bin/bash\nmount -o remount rw /proc\nsysctl -w kernel.perf_event_paranoid=0\n/usr/sbin/sshd\n\$*" > /tmp/init.sh && chmod 755 /tmp/init.sh
+          echo -e "#!/bin/bash\nrm -f /var/run/nologin /run/nologin /etc/nologin\nmount -o remount rw /proc\nsysctl -w kernel.perf_event_paranoid=0\n/usr/sbin/sshd 2>/dev/null || true\n\$*" > /tmp/init.sh && chmod 755 /tmp/init.sh
           cat /tmp/init.sh
+          /usr/sbin/sshd
+          # Verify SSH authentication works end-to-end
+          ssh -v -o PreferredAuthentications=publickey localhost /bin/true
+          echo "SSH publickey auth to localhost: OK"
 
-      - name: make check papiex (redundant with below?)
+      - name: make check papiex
         run: |
           echo 2 > /proc/sys/kernel/perf_event_paranoid
           make OS_TARGET=rocky-8 CONFIG_PAPIEX_DEBUG==${{ matrix.config_papiex_debug }} CONFIG_PAPIEX_PAPI=${{ matrix.config_papiex_papi }} check
