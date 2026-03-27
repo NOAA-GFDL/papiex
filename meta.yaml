@@ -16,7 +16,7 @@
 
 package:
   name: papiex
-  version: '{{ environ.get("GIT_DESCRIBE_TAG", "2.3.15") }}'
+  version: '{{ environ.get("GIT_DESCRIBE_TAG", "develop") }}'
 
 source:
   path: .
