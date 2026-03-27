@@ -1,0 +1,103 @@
+name: publish_conda
+
+on:
+  push:
+#    branches:
+#      - main
+#    tags:
+#      - '*'
+
+jobs:
+  conda-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up base Miniforge
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          conda-remove-defaults: true
+
+      - name: Configure conda channels
+        run: |
+          echo "removing conda default channels, appending open-source ones"
+          conda config --append channels conda-forge
+          conda config --append channels noaa-gfdl
+
+          echo "setting strict channel priority"
+          conda config --set channel_priority strict
+
+          echo "setting anaconda_upload to yes"
+          conda config --set anaconda_upload yes
+
+          echo "printing conda config just in case"
+          conda config --show
+
+      - name: Update Conda and Conda Package Indices
+        run: |
+          echo "updating conda and package channel indices for conda-forge, noaa-gfdl"
+          conda update -y --all --override-channels -c conda-forge
+          conda update -y --all --override-channels -c noaa-gfdl
+
+      - name: Install conda-build and anaconda-client
+        run: |
+          conda install -y conda-forge::conda-build conda-forge::anaconda-client
+
+      - name: Install test dependencies
+        run: |
+          # tcsh provides both tcsh and csh executables, needed by the test suite
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq tcsh
+
+      - name: Enable perf_event for tests
+        run: |
+          # perf_event_paranoid=2 allows user-space perf counter collection,
+          # required for PAPI to function (matches compile_and_test_papiex.yml)
+          sudo sysctl -w kernel.perf_event_paranoid=2
+
+      - name: Build and publish papiex conda package to noaa-gfdl channel
+        id: publish
+        run: |
+          export ANACONDA_API_TOKEN=${{ secrets.ANACONDA_TOKEN }}
+          conda build .
+
+      # -----------------------------------------------------------------
+      # Post-publish verification: install papiex from the noaa-gfdl channel
+      # into a clean environment and verify it works.
+      # -----------------------------------------------------------------
+      - name: Wait for noaa-gfdl channel to update
+        run: |
+          echo "Waiting 2 minutes for the noaa-gfdl channel index to update..."
+          sleep 120
+
+      - name: Remove checked-out source code
+        run: |
+          echo "Removing workspace source to ensure tests run against the installed package"
+          rm -rf "$GITHUB_WORKSPACE"/*
+          ls -la "$GITHUB_WORKSPACE"
+
+      - name: Create clean environment and install papiex from noaa-gfdl
+        run: |
+          conda create -y -n papiex-verify
+          conda activate papiex-verify
+          conda install -y -c noaa-gfdl -c conda-forge papiex
+          conda list -n papiex-verify
+
+      - name: Smoke test — verify installed libraries
+        run: |
+          conda activate papiex-verify
+          echo "Checking that papiex shared libraries are present..."
+          test -f "$CONDA_PREFIX/lib/libpapiex.so" && echo "libpapiex.so found" || { echo "libpapiex.so NOT found"; exit 1; }
+          test -f "$CONDA_PREFIX/lib/libmonitor.so" && echo "libmonitor.so found" || { echo "libmonitor.so NOT found"; exit 1; }
+          echo "Checking that papiex binary is present..."
+          test -x "$CONDA_PREFIX/bin/papiex" && echo "papiex binary found" || { echo "papiex binary NOT found"; exit 1; }
+          echo "All smoke tests passed."
