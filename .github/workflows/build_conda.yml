@@ -54,6 +54,12 @@ jobs:
         run: |
           conda install -y conda-forge::conda-build
 
+      - name: Install test dependencies
+        run: |
+          # tcsh provides both tcsh and csh executables, needed by the test suite
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq tcsh
+
       - name: Enable perf_event for tests
         run: |
           # perf_event_paranoid=2 allows user-space perf counter collection,
