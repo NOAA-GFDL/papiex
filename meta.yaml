@@ -50,7 +50,7 @@ test:
     - test -f $PREFIX/lib/libpapiex.so
     - test -f $PREFIX/lib/libmonitor.so
     # Run the papiex test suite (same tests that 'make check' runs)
-    - cd papiex/src/tests && PAPIEX_PREFIX=$PREFIX bash test.sh
+    - PAPIEX_PREFIX=$PREFIX bash papiex/src/tests/test.sh
 
 about:
   home: https://github.com/NOAA-GFDL/papiex
