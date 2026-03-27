@@ -19,7 +19,6 @@ name: papiex
 
 channels:
   - conda-forge
-  - defaults
 
 dependencies:
   # --- build toolchain ---------------------------------------------------
