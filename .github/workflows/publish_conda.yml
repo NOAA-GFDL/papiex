@@ -52,6 +52,12 @@ jobs:
         run: |
           conda install -y conda-forge::conda-build conda-forge::anaconda-client
 
+      - name: Enable perf_event for tests
+        run: |
+          # perf_event_paranoid=2 allows user-space perf counter collection,
+          # required for PAPI to function (matches compile_and_test_papiex.yml)
+          sudo sysctl -w kernel.perf_event_paranoid=2
+
       - name: Build and publish papiex conda package to noaa-gfdl channel
         run: |
           export ANACONDA_API_TOKEN=${{ secrets.ANACONDA_TOKEN }}
